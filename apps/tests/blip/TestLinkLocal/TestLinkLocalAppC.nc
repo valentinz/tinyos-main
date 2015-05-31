@@ -8,6 +8,8 @@ configuration TestLinkLocalAppC {
   components IPStackC;
   components new TimerMilliC();
   components new UdpSocketC();
+  components PrintfC;
+  components SerialStartC;
 
   TestLinkLocalC.Boot -> MainC;
   TestLinkLocalC.SplitControl -> IPStackC;
