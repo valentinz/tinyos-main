@@ -62,8 +62,6 @@ module PlatformHdlcUartP {
     interface HplMsp430Usart as Usart;
     interface HplMsp430UsartInterrupts as UsartInterrupts;
 
-    interface Msp430DmaChannel as DmaChannel;
-
     interface Alarm<T32khz, uint16_t> as RxAbort;
 
     interface Leds;
@@ -114,7 +112,6 @@ module PlatformHdlcUartP {
 
   async command void ResourceConfigure.unconfigure() {
     call RxAbort.stop();
-    call DmaChannel.stopTransfer();
 
     call Usart.resetUsart(TRUE);
     call Usart.disableIntr();
@@ -143,35 +140,7 @@ module PlatformHdlcUartP {
   }
 
   event void UsartResource.granted() {
-    atomic {
-      if ( m_rx_buf )
-	return;
-      m_rx_buf = __rx_buf;
-
-      /* SDH : important : the dma transfer won't occur if the
-         interrupt is enabled */
-      call Usart.clrRxIntr();
-      call Usart.disableRxIntr();
-      call DmaChannel.setupTransfer(DMA_REPEATED_SINGLE_TRANSFER,
-                                    DMA_TRIGGER_URXIFG1,
-                                    DMA_EDGE_SENSITIVE,
-                                    (void *)U1RXBUF_,
-                                    (void *)m_rx_buf,
-                                    sizeof(__rx_buf),
-                                    DMA_BYTE,
-                                    DMA_BYTE,
-                                    DMA_ADDRESS_UNCHANGED,
-                                    DMA_ADDRESS_INCREMENTED);
-      call DmaChannel.startTransfer();
-
-      /* start the timeout */
-      /* this will be fired when the buffer is about a third full so we
-         can deliver the first half... */
-      m_rx_delivery_stop = m_rx_delivery_start = m_rx_buf;
-
-      call RxAbort.startAt(call RxAbort.getNow(),
-                           m_byte_time * BUFFER_TIMEOUT_BYTES);
-    }
+    // No dma available
   }
 
   async event void UsartInterrupts.rxDone( uint8_t data ) {
@@ -190,8 +159,6 @@ module PlatformHdlcUartP {
     call RxAbort.startAt(call RxAbort.getNow(), 
                          m_byte_time * BUFFER_TIMEOUT_BYTES);
   }
-
-  async event void DmaChannel.transferDone(error_t success) {  }
 
   /* 
    * Send side.  no dma here, just send it out.

@@ -54,9 +54,6 @@ configuration PlatformHdlcUartC {
 
   HdlcUartC.Msp430UartConfigure -> TelosSerialP;
 
-  components Msp430DmaC as DmaC;
-  HdlcUartC.DmaChannel -> DmaC.Channel2;
-
   components new Alarm32khz16C();
   HdlcUartC.RxAbort -> Alarm32khz16C;
 
