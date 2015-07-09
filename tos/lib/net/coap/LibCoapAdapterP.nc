@@ -78,9 +78,9 @@ module LibCoapAdapterP {
     coap_context_t *retransmit_ctx = NULL;
 
   // gets called from libcoap's net.c in error cases or when sending confirmable messages -> spontaneous.
-  coap_tid_t coap_send_impl(uint8_t num, coap_context_t *context,
+  coap_tid_t coap_send_impl(coap_context_t *context,
 			    const coap_address_t *dst,
-			    coap_pdu_t *pdu) @C() @spontaneous() {
+			    coap_pdu_t *pdu, uint8_t num) @C() @spontaneous() {
 
     coap_tid_t id = COAP_INVALID_TID;
 
@@ -198,7 +198,7 @@ module LibCoapAdapterP {
   command coap_tid_t LibCoapServer.send(coap_context_t *context,
 					const coap_address_t *dst,
 					coap_pdu_t *pdu) {
-    return coap_send_impl(0, context, dst, pdu);
+    return coap_send_impl(context, dst, pdu, 0);
   }
 
   command error_t LibCoapServer.setupContext(uint16_t port) {
@@ -223,7 +223,7 @@ module LibCoapAdapterP {
   command coap_tid_t LibCoapClient.send[uint8_t num](coap_context_t *context,
 					const coap_address_t *dst,
 					coap_pdu_t *pdu) {
-    return coap_send_impl(num, context, dst, pdu);
+    return coap_send_impl(context, dst, pdu, num);
   }
 
   command error_t LibCoapClient.setupContext[uint8_t num](uint16_t port) {
