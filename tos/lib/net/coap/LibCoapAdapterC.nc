@@ -44,8 +44,8 @@ generic configuration LibCoapAdapterC(const uint8_t num) {
   components LibCoapAdapterP;
 
 #ifdef COAP_SERVER_ENABLED
-  LibCoapServer = LibCoapAdapterP.LibCoapServer[num];
-  UDPServer = LibCoapAdapterP.UDPServer[num];
+  LibCoapServer = LibCoapAdapterP.LibCoapServer;
+  UDPServer = LibCoapAdapterP.UDPServer;
 #endif
 
 #ifdef COAP_CLIENT_ENABLED
