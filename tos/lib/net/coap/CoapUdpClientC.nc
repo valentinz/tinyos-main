@@ -30,11 +30,11 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-configuration CoapUdpClientC {
+generic configuration CoapUdpClientC() {
     provides interface CoAPClient;
     uses interface LibCoAP as LibCoapClient;
 } implementation {
-    components CoapUdpClientP;
+    components new CoapUdpClientP();
 
     CoAPClient    = CoapUdpClientP.CoAPClient;
     LibCoapClient = CoapUdpClientP.LibCoapClient;

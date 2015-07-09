@@ -30,7 +30,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-configuration LibCoapAdapterC {
+generic configuration LibCoapAdapterC(const uint8_t num) {
 #ifdef COAP_SERVER_ENABLED
   provides interface LibCoAP as LibCoapServer;
   uses interface UDP as UDPServer;
@@ -49,8 +49,8 @@ configuration LibCoapAdapterC {
 #endif
 
 #ifdef COAP_CLIENT_ENABLED
-  LibCoapClient = LibCoapAdapterP.LibCoapClient;
-  UDPClient = LibCoapAdapterP.UDPClient;
+  LibCoapClient = LibCoapAdapterP.LibCoapClient[num];
+  UDPClient = LibCoapAdapterP.UDPClient[num];
 #endif
 
   components LocalTimeSecondC;

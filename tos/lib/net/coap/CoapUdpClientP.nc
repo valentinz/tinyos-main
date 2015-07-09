@@ -35,7 +35,7 @@
 #include <mem.h>
 #include <debug.h>
 
-module CoapUdpClientP {
+generic module CoapUdpClientP() {
     provides interface CoAPClient;
     uses interface LibCoAP as LibCoapClient;
 } implementation {

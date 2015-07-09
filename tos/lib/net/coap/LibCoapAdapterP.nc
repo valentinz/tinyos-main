@@ -43,8 +43,8 @@ module LibCoapAdapterP {
 #endif
 
 #ifdef COAP_CLIENT_ENABLED
-  provides interface LibCoAP as LibCoapClient;
-  uses interface UDP as UDPClient;
+  provides interface LibCoAP as LibCoapClient[uint8_t num];
+  uses interface UDP as UDPClient[uint8_t num];
 #endif
 
   uses interface LocalTime<TSecond> as LocalTime;
@@ -78,7 +78,7 @@ module LibCoapAdapterP {
     coap_context_t *retransmit_ctx = NULL;
 
   // gets called from libcoap's net.c in error cases or when sending confirmable messages -> spontaneous.
-  coap_tid_t coap_send_impl(coap_context_t *context,
+  coap_tid_t coap_send_impl(uint8_t num, coap_context_t *context,
 			    const coap_address_t *dst,
 			    coap_pdu_t *pdu) @C() @spontaneous() {
 
@@ -95,7 +95,7 @@ module LibCoapAdapterP {
 
 #ifdef COAP_CLIENT_ENABLED
     if (context->tinyos_port == (uint16_t)COAP_CLIENT_PORT) {
-      call UDPClient.sendto(&(dst->addr), pdu->hdr, pdu->length);
+      call UDPClient.sendto[num](&(dst->addr), pdu->hdr, pdu->length);
     }
 #endif
 #ifdef COAP_SERVER_ENABLED
@@ -198,7 +198,7 @@ module LibCoapAdapterP {
   command coap_tid_t LibCoapServer.send(coap_context_t *context,
 					const coap_address_t *dst,
 					coap_pdu_t *pdu) {
-    return coap_send_impl(context, dst, pdu);
+    return coap_send_impl(0, context, dst, pdu);
   }
 
   command error_t LibCoapServer.setupContext(uint16_t port) {
@@ -209,25 +209,33 @@ module LibCoapAdapterP {
   /////////////////////////////////////////////////
   // Provide sending/receiving interface to libcoap
 #ifdef COAP_CLIENT_ENABLED
-  void libcoap_client_read(struct sockaddr_in6 *from, void *data,
+  void libcoap_client_read(uint8_t num, struct sockaddr_in6 *from, void *data,
 			   uint16_t len, struct ip6_metadata *meta) {
-    signal LibCoapClient.read(from, data, len, meta);
+    signal LibCoapClient.read[num](from, data, len, meta);
   }
 
-  event void UDPClient.recvfrom(struct sockaddr_in6 *from, void *data,
+  event void UDPClient.recvfrom[uint8_t num](struct sockaddr_in6 *from, void *data,
 				uint16_t len, struct ip6_metadata *meta) {
     //printf("LibCoapAdapter UDPClient.recvfrom()\n");
-    libcoap_client_read(from, data, len, meta);
+    libcoap_client_read(num, from, data, len, meta);
   }
 
-  command coap_tid_t LibCoapClient.send(coap_context_t *context,
+  command coap_tid_t LibCoapClient.send[uint8_t num](coap_context_t *context,
 					const coap_address_t *dst,
 					coap_pdu_t *pdu) {
-    return coap_send_impl(context, dst, pdu);
+    return coap_send_impl(num, context, dst, pdu);
   }
 
-  command error_t LibCoapClient.setupContext(uint16_t port) {
-    return call UDPClient.bind(port);
+  command error_t LibCoapClient.setupContext[uint8_t num](uint16_t port) {
+    return call UDPClient.bind[num](port);
   }
+
+  default event void LibCoapClient.read[uint8_t num](struct sockaddr_in6 *from, void *data,
+                    uint16_t len, struct ip6_metadata *meta) {
+  }
+
+  default command error_t UDPClient.sendto[uint8_t num](struct sockaddr_in6 *dest, void *payload, uint16_t len) {
+  }
+
 #endif
 }
