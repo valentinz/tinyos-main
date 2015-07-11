@@ -118,6 +118,7 @@ char *coap_response_phrase(unsigned char code);
 #define COAP_RESPONSE_201      COAP_RESPONSE_CODE(201)  /* 2.01 Created */
 #define COAP_RESPONSE_304      COAP_RESPONSE_CODE(203)  /* 2.03 Valid */
 #define COAP_RESPONSE_400      COAP_RESPONSE_CODE(400)  /* 4.00 Bad Request */
+#define COAP_RESPONSE_403      COAP_RESPONSE_CODE(403)  /* 4.03 Forbidden */
 #define COAP_RESPONSE_404      COAP_RESPONSE_CODE(404)  /* 4.04 Not Found */
 #define COAP_RESPONSE_405      COAP_RESPONSE_CODE(405)  /* 4.05 Method Not Allowed */
 #define COAP_RESPONSE_415      COAP_RESPONSE_CODE(415)  /* 4.15 Unsupported Media Type */
