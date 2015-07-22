@@ -35,6 +35,7 @@
 #include <net.h>
 #include <pdu.h>
 #include <coap_time.h>
+#include "LibCoapAdapter.h"
 
 module LibCoapAdapterP {
 #ifdef COAP_SERVER_ENABLED
@@ -47,40 +48,17 @@ module LibCoapAdapterP {
   uses interface UDP as UDPClient[uint8_t num];
 #endif
 
-  uses interface LocalTime<TSecond> as LocalTime;
-  uses interface Timer<TMilli> as RetransmissionTimerMilli;
-  uses interface Random;
-  uses interface Leds;
+  uses interface LocalTime<TSecond> as LocalTime[uint8_t num];
+  uses interface Timer<TMilli> as RetransmissionTimerMilli[uint8_t num];
+  uses interface Random[uint8_t num];
 } implementation {
 
-  /*
-    //debugging help for C code:
-
-  void allLedsOn() @C() @spontaneous() {
-    call Leds.led0On();
-    call Leds.led1On();
-    call Leds.led2On();
-  }
-
-  void led0On() @C() @spontaneous() {
-    call Leds.led0On();
-  }
-
-  void led1On() @C() @spontaneous() {
-    call Leds.led1On();
-  }
-
-  void led2On() @C() @spontaneous() {
-    call Leds.led2On();
-  }
-  */
-
-    coap_context_t *retransmit_ctx = NULL;
+    coap_context_t *retransmit_ctx[uniqueCount(LIB_COAP_ADAPTER_UNIQUE_NUM)];
 
   // gets called from libcoap's net.c in error cases or when sending confirmable messages -> spontaneous.
   coap_tid_t coap_send_impl(coap_context_t *context,
 			    const coap_address_t *dst,
-			    coap_pdu_t *pdu, uint8_t num) @C() @spontaneous() {
+			    coap_pdu_t *pdu) @C() @spontaneous() {
 
     coap_tid_t id = COAP_INVALID_TID;
 
@@ -95,7 +73,7 @@ module LibCoapAdapterP {
 
 #ifdef COAP_CLIENT_ENABLED
     if (context->tinyos_port == (uint16_t)COAP_CLIENT_PORT) {
-      call UDPClient.sendto[num](&(dst->addr), pdu->hdr, pdu->length);
+      call UDPClient.sendto[context->num]((struct sockaddr_in6 *) &(dst->addr), pdu->hdr, pdu->length);
     }
 #endif
 #ifdef COAP_SERVER_ENABLED
@@ -119,14 +97,18 @@ module LibCoapAdapterP {
   }
 
   inline void tinyos_ticks_impl(coap_tick_t *t) @C() @spontaneous() {
-    uint32_t time = call LocalTime.get();
+    uint32_t time = call LocalTime.get[0]();
     *t = time;
+  }
+
+  default async command uint32_t LocalTime.get[uint8_t num]() {
+    return call LocalTime.get[0]();
   }
 
   ///////////////////////////
   // Provide PRNG for libcoap
   inline int tinyos_prng_impl(unsigned char *buf, size_t len) @C() @spontaneous() {
-    uint16_t v = call Random.rand16();
+    uint16_t v = call Random.rand16[0]();
 
     while (len > sizeof(v)) {
 	memcpy(buf, &v, sizeof(v));
@@ -138,15 +120,22 @@ module LibCoapAdapterP {
     return 1;
   }
 
+  default async command uint16_t Random.rand16[uint8_t num]() {
+    return call Random.rand16[0]();
+  }
+
   //TODO: test retransmissions
   ////////////////////////////////////////////
   // Provide retransmission timing for libcoap
   inline void tinyos_retransmission_impl(coap_context_t *ctx, coap_tick_t t) @C() @spontaneous() {
       // TODO: for the moment there is just one context (the server context).
       // adapt retransmission timer handling, if there are more contexts...
-      retransmit_ctx = ctx;
+      retransmit_ctx[ctx->num] = ctx;
 
-      call RetransmissionTimerMilli.startOneShot(((uint32_t)t)<<10); //*1024
+      call RetransmissionTimerMilli.startOneShot[ctx->num](((uint32_t)t)<<10); //*1024
+  }
+
+  default command void RetransmissionTimerMilli.startOneShot[uint8_t num](uint32_t dt) {
   }
 
   void retransmit(coap_context_t* ctx) {
@@ -175,9 +164,9 @@ module LibCoapAdapterP {
 	}*/
   }
 
-  event void RetransmissionTimerMilli.fired() {
-      if (retransmit_ctx != NULL) {
-	  retransmit(retransmit_ctx);
+  event void RetransmissionTimerMilli.fired[uint8_t num]() {
+      if (retransmit_ctx[num] != NULL) {
+	  retransmit(retransmit_ctx[num]);
       }
   }
 
@@ -198,7 +187,7 @@ module LibCoapAdapterP {
   command coap_tid_t LibCoapServer.send(coap_context_t *context,
 					const coap_address_t *dst,
 					coap_pdu_t *pdu) {
-    return coap_send_impl(context, dst, pdu, 0);
+    return coap_send_impl(context, dst, pdu);
   }
 
   command error_t LibCoapServer.setupContext(uint16_t port) {
@@ -223,7 +212,8 @@ module LibCoapAdapterP {
   command coap_tid_t LibCoapClient.send[uint8_t num](coap_context_t *context,
 					const coap_address_t *dst,
 					coap_pdu_t *pdu) {
-    return coap_send_impl(context, dst, pdu, num);
+    context->num = num;
+    return coap_send_impl(context, dst, pdu);
   }
 
   command error_t LibCoapClient.setupContext[uint8_t num](uint16_t port) {
@@ -235,6 +225,7 @@ module LibCoapAdapterP {
   }
 
   default command error_t UDPClient.sendto[uint8_t num](struct sockaddr_in6 *dest, void *payload, uint16_t len) {
+     return FAIL;
   }
 
 #endif

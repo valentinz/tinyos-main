@@ -54,15 +54,12 @@ generic configuration LibCoapAdapterC(const uint8_t num) {
 #endif
 
   components LocalTimeSecondC;
-  LibCoapAdapterP.LocalTime -> LocalTimeSecondC;
-
-  components LedsC;
-  LibCoapAdapterP.Leds -> LedsC;
+  LibCoapAdapterP.LocalTime[num] -> LocalTimeSecondC;
 
   components RandomC;
-  LibCoapAdapterP.Random -> RandomC;
+  LibCoapAdapterP.Random[num] -> RandomC;
 
   components new TimerMilliC();
-  LibCoapAdapterP.RetransmissionTimerMilli -> TimerMilliC;
+  LibCoapAdapterP.RetransmissionTimerMilli[num] -> TimerMilliC;
 
 }

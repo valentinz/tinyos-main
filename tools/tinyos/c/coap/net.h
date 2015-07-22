@@ -119,6 +119,7 @@ typedef struct coap_context_t {
   uint8_t buf[COAP_MAX_PDU_SIZE];
     //coap_list_t *resources;
   coap_address_t src;
+  uint8_t num;
 #endif
 
 #ifndef WITH_CONTIKI
