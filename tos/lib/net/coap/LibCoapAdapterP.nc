@@ -78,7 +78,7 @@ module LibCoapAdapterP {
 #endif
 #ifdef COAP_SERVER_ENABLED
     if (context->tinyos_port == (uint16_t)COAP_SERVER_PORT) {
-      call UDPServer.sendto(&(dst->addr), pdu->hdr, pdu->length);
+      call UDPServer.sendto((struct sockaddr_in6 *) &(dst->addr), pdu->hdr, pdu->length);
     }
 #endif
     else {
