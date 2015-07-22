@@ -61,6 +61,7 @@ int inet_ntop6(struct in6_addr *addr, char *buf, int cnt) {
   uint16_t block;
   char *end = buf + cnt;
   int i, j, compressed = 0;
+  uint16_t shiftMapping[] = {0xffff, 0x0fff, 0x00ff, 0x000f, 0x0000 };
 
   for (j = 0; j < 8; j++) {
     if (buf > end - 8)
@@ -68,7 +69,7 @@ int inet_ntop6(struct in6_addr *addr, char *buf, int cnt) {
 
     block = ntohs(addr->s6_addr16[j]);
     for (i = 4; i <= 16; i+=4) {
-      if (block > (0xffff >> i) || (compressed == 2 && i == 16)) {
+      if (block > shiftMapping[i / 4] || (compressed == 2 && i == 16)) {
         *buf++ = TO_CHAR((block >> (16 - i)) & 0xf);
       }
     }
