@@ -96,6 +96,7 @@ int lowpan_recon_start(struct ieee154_frame_addr *frame_addr,
    * address may not have been known. In that case, the checksum will fail
    * at the packet's destination.
    */
+#if 0
   if (recalculate_checksum) {
     struct ip6_hdr *hdr = (struct ip6_hdr *) recon->r_buf;
 
@@ -118,6 +119,7 @@ int lowpan_recon_start(struct ieee154_frame_addr *frame_addr,
     }
 
   }
+#endif
 
   /* done, updated all the fields */
   /* reconstruction is complete if r_bytes_rcvd == r_size */
