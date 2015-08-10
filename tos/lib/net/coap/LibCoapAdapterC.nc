@@ -31,27 +31,13 @@
  */
 
 generic configuration LibCoapAdapterC(const uint8_t num) {
-#ifdef COAP_SERVER_ENABLED
-  provides interface LibCoAP as LibCoapServer;
-  uses interface UDP as UDPServer;
-#endif
-
-#ifdef COAP_CLIENT_ENABLED
-  provides interface LibCoAP as LibCoapClient;
-  uses interface UDP as UDPClient;
-#endif
+  provides interface LibCoAP;
+  uses interface UDP;
 } implementation {
   components LibCoapAdapterP;
 
-#ifdef COAP_SERVER_ENABLED
-  LibCoapServer = LibCoapAdapterP.LibCoapServer;
-  UDPServer = LibCoapAdapterP.UDPServer;
-#endif
-
-#ifdef COAP_CLIENT_ENABLED
-  LibCoapClient = LibCoapAdapterP.LibCoapClient[num];
-  UDPClient = LibCoapAdapterP.UDPClient[num];
-#endif
+  LibCoAP = LibCoapAdapterP.LibCoAP[num];
+  UDP = LibCoapAdapterP.UDP[num];
 
   components LocalTimeSecondC;
   LibCoapAdapterP.LocalTime[num] -> LocalTimeSecondC;

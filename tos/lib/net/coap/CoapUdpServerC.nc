@@ -30,16 +30,17 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-configuration CoapUdpServerC {
+generic configuration CoapUdpServerC(const uint8_t num) {
   provides interface CoAPServer;
   uses interface LibCoAP as LibCoapServer;
-  uses interface CoapResource[uint8_t uri];
+  uses interface CoapResource[uint8_t num, uint8_t uri];
 }
 implementation {
-  components CoapUdpServerP, LedsC;
+  components CoapUdpServerP;
+  components LedsC;
 
-  CoAPServer    = CoapUdpServerP.CoAPServer;
-  LibCoapServer = CoapUdpServerP.LibCoapServer;
+  CoAPServer    = CoapUdpServerP.CoAPServer[num];
+  LibCoapServer = CoapUdpServerP.LibCoapServer[num];
 
   CoapResource  = CoapUdpServerP.CoapResource;
 
