@@ -55,7 +55,6 @@
 module CoapUdpServerP {
     provides interface CoAPServer[uint8_t num];
     uses interface LibCoAP as LibCoapServer[uint8_t num];
-    uses interface Leds;
     uses interface CoapResource[uint8_t num, uint8_t uri];
 } implementation {
     coap_context_t *ctx_server[uniqueCount(LIB_COAP_UDP_SERVER_UNIQUE_NUM)];

@@ -33,16 +33,13 @@
 generic configuration CoapUdpServerC(const uint8_t num) {
   provides interface CoAPServer;
   uses interface LibCoAP as LibCoapServer;
-  uses interface CoapResource[uint8_t num, uint8_t uri];
+  uses interface CoapResource[uint8_t n, uint8_t uri];
 }
 implementation {
   components CoapUdpServerP;
-  components LedsC;
 
   CoAPServer    = CoapUdpServerP.CoAPServer[num];
   LibCoapServer = CoapUdpServerP.LibCoapServer[num];
 
   CoapResource  = CoapUdpServerP.CoapResource;
-
-  CoapUdpServerP.Leds -> LedsC;
 }
